@@ -1,0 +1,16 @@
+Package: HarmonizedTCGAData
+Type: Package
+Title: Processed Harmonized TCGA Data of Five Selected Cancer Types
+Version: 0.99.0
+Author: Tianle Ma
+Maintainer: Tianle Ma <tianlema@buffalo.edu>
+Description: This package contains the processed harmonized TCGA data of five selected cancer types used in "Tianle Ma and Aidong Zhang, Integrate Multi-omic Data Using Affinity Network Fusion (ANF) for Cancer Patient Clustering".
+License: LGPL (>= 3)
+Depends: R (>= 3.4.0)
+VignetteBuilder: knitr
+Suggests: SNF,
+    knitr,
+    rmarkdown
+biocViews: CancerData, ReproducibleResearch
+RoxygenNote: 6.0.1
+LazyData: true

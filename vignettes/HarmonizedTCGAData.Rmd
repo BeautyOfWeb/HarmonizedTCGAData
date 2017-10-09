@@ -1,0 +1,52 @@
+---
+title: "Affinity Matrices of 2582 Patients Derived from Harmonized TCGA Dataset"
+author: "Tianle Ma"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Patient Affinity Matrices Derived from Harmonized TCGA Dataset}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+**If you use the data from this package in published research, please cite:**
+
+> Tianle Ma, Aidong Zhang,
+> Integrate Multi-omic Data Using Affinity Network Fusion (ANF) for Cancer Patient Clustering, 
+> https://arxiv.org/abs/1708.07136
+
+There are three R objects: `Wall`, `project_ids` and `survival.plot`:
+
+inst/scripts/make-data.R explains in detail how `Wall`, `project_ids` and `survival.plot` was generated from original data downloaded from GDC data portal.
+
+`Wall` contains lists inside list. In fact, `Wall` is a list (five cancer types) of list (six feature normalization types: `raw.all`, `raw.sel`, `log.all`, `log.sel`,  `vst.sel`, `normalized`) of list (three feature spaces or views: `fpkm`, `mirna`, and `methy450`) of pre-computed patient affinity matrices. The rownames of each matrix is the case ID, and the column names of each matrix is the aliquot ID (i.e., TCGA barcode, which contains the case_id as prefix). Based on these aliquot IDs, users can download the original data from https://portal.gdc.cancer.gov/repository.
+The file UUIDs of 10328 files are also provided in  inst/extdata/fileUUIDs.csv
+
+`project_ids` is a named character vector, that maps case_id to project_id (one-to-one correspond to disease type). This is used for evaluating clustering results, such as calculating NMI and Adjusted Rand Index (ARI).
+
+`surv.plot` is a data.frame containing patient survival data for survival analysis, providing an "indirect" way to evaluate clustering results.
+
+See paper https://arxiv.org/abs/1708.07136 for more explanation.
+
+Load the data
+```{r}
+data("Wall")
+data("project_ids")
+data("surv.plot")
+
+library(ExperimentHub)
+eh <- ExperimentHub()
+```
+
+Use ANF package to cluster patients of the same type into groups
+```{r}
+library(ANF)
+# Take adrenal_gland cancer for example. Use ANF to fuse three matrices of `log.sel`.
+fused.mat <- ANF(Wall = Wall$adrenal_gland$log.sel)
+# Spectral clustering on fused patient affinity matrix fused.mat
+labels <- spectral_clustering(A = fused.mat, k = 2)
+# If true_class information is available, we evaluate clustering results, using function `eval_clu`, which calls `spectral_clustering` and calculate NMI and ARI (and p-value if survival data is availabe)
+res <- eval_clu(true_class = project_ids[rownames(fused.mat)], w = fused.mat, surv = surv.plot)
+res$labels
+```
+
