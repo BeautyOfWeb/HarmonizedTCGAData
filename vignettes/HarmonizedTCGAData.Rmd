@@ -33,13 +33,10 @@ Load the data
 data("Wall")
 data("project_ids")
 data("surv.plot")
-
-library(ExperimentHub)
-eh <- ExperimentHub()
 ```
 
 Use ANF package to cluster patients of the same type into groups
-```{r}
+```{r, eval=FALSE}
 library(ANF)
 # Take adrenal_gland cancer for example. Use ANF to fuse three matrices of `log.sel`.
 fused.mat <- ANF(Wall = Wall$adrenal_gland$log.sel)

@@ -4,7 +4,7 @@ meta <- data.frame(
                        "of 2582 patients from nine TCGA projects ",
                        "using gene expression, miRNA expression, ",
                        "and DNA methylation data"),
-  BiocVersion = "3.4",
+  BiocVersion = "3.7",
   Genome = "GRCh38",
   SourceType = "TXT, TSV",
   SourceUrl = "https://portal.gdc.cancer.gov/repository",
@@ -16,7 +16,8 @@ meta <- data.frame(
   Maintainer = "Tianle Ma <tianlema@buffalo.edu>",
   RDataClass = "List",
   DispatchClass = "Rda",
-  ResourceName = "Wall.rda"
+  ResourceName = "Wall.rda",
+  RDataPath = "HarmonizedTCGAData/Wall.rda"
 )
 
 meta <- rbind(meta, data.frame(
@@ -24,7 +25,7 @@ meta <- rbind(meta, data.frame(
   Description = paste0("Map case ID to project ID",
                        " (each project ID correspond to a
                        disease type)"),
-  BiocVersion = "3.4",
+  BiocVersion = "3.7",
   Genome = "GRCh38",
   SourceType = "JSON",
   SourceUrl = "https://portal.gdc.cancer.gov/repository?searchTableTab=cases",
@@ -36,14 +37,15 @@ meta <- rbind(meta, data.frame(
   Maintainer = "Tianle Ma <tianlema@buffalo.edu>",
   RDataClass = "Character",
   DispatchClass = "Rda",
-  ResourceName = "project_ids.rda"
+  ResourceName = "project_ids.rda",
+  RDataPath = "HarmonizedTCGAData/project_ids.rda"
 ))
 
 meta <- rbind(meta, data.frame(
   Title = "Survival Data for 12899 TCGA Cases",
   Description = paste0("Data used for overall survival plot ",
                        "of 12899 TCGA cases"),
-  BiocVersion = "3.4",
+  BiocVersion = "3.7",
   Genome = "GRCh38",
   SourceType = "JSON",
   SourceUrl = "https://portal.gdc.cancer.gov/exploration?searchTableTab=genes",
@@ -55,7 +57,8 @@ meta <- rbind(meta, data.frame(
   Maintainer = "Tianle Ma <tianlema@buffalo.edu>",
   RDataClass = "data.frame",
   DispatchClass = "Rda",
-  ResourceName = "surv.plot.rda"
+  ResourceName = "surv.plot.rda",
+  RDataPath = "HarmonizedTCGAData/surv.plot.rda"
 ))
 
 ## Not run:
