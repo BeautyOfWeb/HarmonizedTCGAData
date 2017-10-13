@@ -15,35 +15,119 @@ vignette: >
 > Integrate Multi-omic Data Using Affinity Network Fusion (ANF) for Cancer Patient Clustering, 
 > https://arxiv.org/abs/1708.07136
 
-There are three R objects: `Wall`, `project_ids` and `survival.plot`:
+# About the data packages
+There are three R objects included in this package: `Wall`, `project_ids` and `survival.plot`:
 
 inst/scripts/make-data.R explains in detail how `Wall`, `project_ids` and `survival.plot` was generated from original data downloaded from GDC data portal.
 
-`Wall` contains lists inside list. In fact, `Wall` is a list (five cancer types) of list (six feature normalization types: `raw.all`, `raw.sel`, `log.all`, `log.sel`,  `vst.sel`, `normalized`) of list (three feature spaces or views: `fpkm`, `mirna`, and `methy450`) of pre-computed patient affinity matrices. The rownames of each matrix is the case ID, and the column names of each matrix is the aliquot ID (i.e., TCGA barcode, which contains the case_id as prefix). Based on these aliquot IDs, users can download the original data from https://portal.gdc.cancer.gov/repository.
-The file UUIDs of 10328 files are also provided in  inst/extdata/fileUUIDs.csv
+In short, `Wall` contains a complex list of precomputed patient affinity (similarity) matrices. In fact, `Wall` is a list (five cancer types) of list (six feature normalization types: `raw.all`, `raw.sel`, `log.all`, `log.sel`,  `vst.sel`, `normalized`) of list (three feature spaces or views: `fpkm`, `mirna`, and `methy450`) of pre-computed patient affinity matrices. (So in total, there are 90 matrices.) The rownames of each matrix are case IDs (i.e., patient IDs), and the column names of each matrix are the aliquot IDs (i.e., TCGA barcode, which contains the case ID as prefix). Based on these aliquot IDs, users can download the original data about these patients from https://portal.gdc.cancer.gov/repository.
+The file UUIDs of 10328 files used for deriving `Wall` are also provided in  inst/extdata/fileUUIDs.csv
 
-`project_ids` is a named character vector, that maps case_id to project_id (one-to-one correspond to disease type). This is used for evaluating clustering results, such as calculating NMI and Adjusted Rand Index (ARI).
+`project_ids` is a named character vector that maps case_id to TCGA project_id. Because each project_id corresponds to one disease type, `project_ids` contains information about patient disease type information. Since our goal is to cluster cancer patients into disease types, `project_ids` is used for evaluating clustering results, such as calculating Normalized Mutual Information (NMI) and Adjusted Rand Index (ARI).
 
-`surv.plot` is a data.frame containing patient survival data for survival analysis, providing an "indirect" way to evaluate clustering results.
+`surv.plot` is a data.frame containing patient survival data for survival analysis downloaded from https://portal.gdc.cancer.gov/exploration?searchTableTab=genes (overall survival plot data), providing an "indirect" way to evaluate clustering results.
 
 See paper https://arxiv.org/abs/1708.07136 for more explanation.
 
-Load the data
+# Usage of this package
+## Load the data
 ```{r}
-data("Wall")
-data("project_ids")
-data("surv.plot")
+library(ExperimentHub)
+eh <- ExperimentHub()
+myfiles <- query(eh, "HarmonizedTCGAData")
+Wall <- myfiles[[1]]
+project_ids <- myfiles[[2]]
+surv.plot <- myfiles[[3]]
 ```
 
-Use ANF package to cluster patients of the same type into groups
-```{r, eval=FALSE}
+## Brief backgroud about Wall
+Comprehensive molecular profiling data of dozens of cancer types have been made available by TCGA. We selected cancers from five primary sites (in the following we refer to the names of primary sites as cancer types). Each of these five cancer types has at least two known disease types. For other cancer types, we do not know the groundtruth disease types. That's why they were not included in the package.
+```{r}
+names(Wall)
+```
+
+We are trying to cluster patients into groups and identify cancer subtypes (i.e., disease types) using multi-omic data. Here we include three types of data: gene expression, miRNA expression and DNA methylation beta values. We selected 2582 patients who has all these data available and included them in this package.
+```{r}
+names(Wall[[1]][[1]]) #Note: "fpkm" refers to gene expression measurement, which can be HTSeq-Counts, transformed HTSeq-Counts (log2 transformation or variance-stabilizing transformation), and FPKM values. Sorry for the confusing name.
+```
+
+For raw counts data (measuring gene expression and miRNA expression), we can perform feature selection (e.g., differential expression analysis) and feature transformation (e.g., log2 transformation and variance-stabilizing transformation). We have included six feature types in this package:
+
+`raw.all`: Raw counts of all genes or miRNAs
+
+`raw.sel`: Raw counts of selected (differentially expressed) genes or miRNAs (Differential expression analysis was performed using DESeq2)
+
+`log.all`: Log transformation of raw counts of all genes or miRNAs
+
+`log.sel`: Log transformation of raw counts of selected (differentially expressed) genes or miRNAs
+
+`vst.sel`: Variance stabilizing transformation of raw counts of selected genes or miRNAs
+
+`normalized`: FPKM values of all genes or normalized counts for all miRNAs
+
+
+```{r}
+names(Wall[[1]])
+```
+
+So for each of the five cancer types, we have the above six feature types (`raw.all`, `raw.sel`, `log.all`, `log.sel`, `vst.sel` and `normalized`). For each feature type, we have three "views": gene expression (named `fpkm`, i.e., `names(Wall[[1]][[1]])[1]`), miRNA expression (`mirnas`), and DNA methylation beta values (`methy450`). In total, there are 90 matrices contained in `Wall`. (For DNA methylation, we directly used beta values without feature transformation. So the six `methy450` matrices are the same. Thus we actually only have 65 unique matrices in `Wall`.)
+
+## Spectral clustering using affinity matrices
+
+We can perform spectral clustering on a patient affinity matrix.
+Take adrend_gland cancer for example. We can cluseter patients using affinity matrix derived from log2 transformation of raw counts of differentially expressed genes.
+
+```{r}
 library(ANF)
-# Take adrenal_gland cancer for example. Use ANF to fuse three matrices of `log.sel`.
-fused.mat <- ANF(Wall = Wall$adrenal_gland$log.sel)
-# Spectral clustering on fused patient affinity matrix fused.mat
-labels <- spectral_clustering(A = fused.mat, k = 2)
-# If true_class information is available, we evaluate clustering results, using function `eval_clu`, which calls `spectral_clustering` and calculate NMI and ARI (and p-value if survival data is availabe)
-res <- eval_clu(true_class = project_ids[rownames(fused.mat)], w = fused.mat, surv = surv.plot)
+affinity.mat <- Wall[["adrenal_gland"]][["log.sel"]][["fpkm"]]
+labels <- spectral_clustering(affinity.mat, k = 2)
+```
+
+Since we know true disease types, which correspond to project ids in `project_ids`, we can calculate NMI and ARI.
+```{r}
+true.disease.types <- as.factor(project_ids[rownames(affinity.mat)])
+print(table(labels, true.disease.types))
+
+nmi <- igraph::compare(true.disease.types, labels, method = "nmi")
+
+adjusted.rand = igraph::compare(true.disease.types, labels, method = "adjusted.rand")
+
+# we can also calculate p-value using `surv.plot` data
+surv.plot <- surv.plot[rownames(affinity.mat), ]
+f <- survival::Surv(surv.plot$time, !surv.plot$censored)
+fit <- survival::survdiff(f ~ labels)
+pval <- stats::pchisq(fit$chisq, df = length(fit$n) - 1, lower.tail = FALSE)
+
+print(paste("NMI =", nmi, ", ARI =", adjusted.rand, ", p-val =", pval))
+```
+
+
+In ANF package, We have provided a function `eval_clu` that streamlines the above process from spectral clustering to calculating NMI, ARI and p-value. Here is an example of how to use `eval_clu`:
+
+```{r}
+res <- eval_clu(project_ids, w = affinity.mat, surv = surv.plot)
 res$labels
 ```
 
+For adrenal_gland cancer, we only misclassify one out of 253 patients using this affinity matrix. That is a pretty good result (In fact, this the best result we can achieve. Users can try using other matrices and compare the results). However, for many cases, using a single affinity matrix does a "terrible" job in clustering patients into correct disease types. Take uterus cancer for example (the NMI is near 0).
+
+```{r}
+res <- eval_clu(project_ids, w = Wall$uterus$raw.all$fpkm)
+```
+
+
+## Use Affinity Network Fusion (ANF package) to fuse multiple affinity matrices for patient clustering
+
+Instead of using one affinity matrix, we can "fuse" multiple affinity matrices using ANF package, and then perform spectral clustering on the fused affinity matrix.
+
+Let's take uterus cancer for example.
+```{r}
+# fuse three matrices: "fpkm" (gene expression), "mirnas" (miRNA expression) and "methy450" (DNA methylation)
+fused.mat <- ANF(Wall = Wall$uterus$raw.all)
+# Spectral clustering on fused patient affinity matrix
+labels <- spectral_clustering(A = fused.mat, k = 2)
+# Or we can directly evaluate clustering results using function `eval_clu`, which calls `spectral_clustering` and calculate NMI and ARI (and p-value if patient survival data is available. `surv.plot` does not contain information for uterus cancer patients)
+res <- eval_clu(true_class = project_ids[rownames(fused.mat)], w = fused.mat)
+```
+
+As we can see, spectral clustering on the fused affinity matrix significantly improves the results for uterus cancer. This demonstrate the power of ANF. The paper https://arxiv.org/abs/1708.07136 have provided more results.

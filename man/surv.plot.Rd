@@ -10,7 +10,17 @@
 surv.plot
 }
 \description{
-Patient survival information downloaded from https://portal.gdc.cancer.gov
-For detailed information: see section "Survival analysis" in https://docs.gdc.cancer.gov/Data_Portal/PDF/Data_Portal_UG.pdf
+Patient survival information (overall survival plot data) were downloaded from
+https://portal.gdc.cancer.gov/exploration?searchTableTab=genes
+For detailed information: see section "Survival analysis" in
+https://docs.gdc.cancer.gov/Data_Portal/PDF/Data_Portal_UG.pdf
+}
+\examples{
+library(ExperimentHub)
+eh <- ExperimentHub()
+myfiles <- query(eh, "HarmonizedTCGAData")
+surv.plot <- myfiles[[3]]
+# surv.plot <- myfiles[['EH1016']]
+head(surv.plot)
 }
 \keyword{datasets}

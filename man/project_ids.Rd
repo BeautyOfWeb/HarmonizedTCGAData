@@ -3,14 +3,21 @@
 \docType{data}
 \name{project_ids}
 \alias{project_ids}
-\title{project_ids
-A named character vector: mapping sumbitter_id (can be seen as patient ID) to its TCGA project ID}
+\title{project_ids}
 \format{An object of class \code{character} of length 14551.}
 \usage{
 project_ids
 }
 \description{
-project_ids
-A named character vector: mapping sumbitter_id (can be seen as patient ID) to its TCGA project ID
+A named character vector: mapping case_id (i.e., patient ID) to
+the TCGA project ID they belong to
+}
+\examples{
+library(ExperimentHub)
+eh <- ExperimentHub()
+myfiles <- query(eh, "HarmonizedTCGAData")
+project_ids <- myfiles[[2]]
+# project_ids <- myfiles[['EH1015']]
+head(project_ids)
 }
 \keyword{datasets}

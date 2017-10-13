@@ -89,12 +89,12 @@ coldata = data.frame(subject=substr(colnames(cnt),1,12),type=substr(colnames(cnt
 dds = DESeqDataSetFromMatrix(cnt, coldata, design = ~subject+type)
 dds = DESeq(dds)
 if (data_type == "fpkm") {
-  res <- results(dds, contrast = c("type","01","11"), lfcThreshold = 1, alpha = 0.05)
-  degs=rownames(res)[!is.na(res$padj)&res$padj<0.05]
+    res <- results(dds, contrast = c("type","01","11"), lfcThreshold = 1, alpha = 0.05)
+    degs=rownames(res)[!is.na(res$padj)&res$padj<0.05]
 }
 if (data_type == "mirnas") {
-  res <-results(dds, contrast = c("type","01","11"))
-  degs=rownames(res)[!is.na(res$padj)&res$padj<0.1]
+    res <-results(dds, contrast = c("type","01","11"))
+    degs=rownames(res)[!is.na(res$padj)&res$padj<0.1]
 }
 
 # Now we get differentially expressed genes/mirnas (i.e., `degs` in the above code)
