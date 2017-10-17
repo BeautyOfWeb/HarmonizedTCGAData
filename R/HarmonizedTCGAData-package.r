@@ -21,10 +21,6 @@ NULL
 #' The rownames of each matrix is the case_id (i.e., patient id),
 #' and the column names of each matrix is the aliquot IDs (i.e., TCGA barcode,
 #' which contains the case_id as prefix).
-#' @importFrom igraph compare
-#' @importFrom survival Surv survdiff
-#' @importFrom stats pchisq
-#' @importFrom ANF ANF spectral_clustering eval_clu
 #' @examples
 #' library(ExperimentHub)
 #' eh <- ExperimentHub()

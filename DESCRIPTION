@@ -6,12 +6,16 @@ Author: Tianle Ma
 Maintainer: Tianle Ma <tianlema@buffalo.edu>
 Description: This package contains the processed harmonized TCGA data of five cancer types used in "Tianle Ma and Aidong Zhang, Integrate Multi-omic Data Using Affinity Network Fusion (ANF) for Cancer Patient Clustering".
 License: GPL-3
-Imports: ExperimentHub, igraph, survival, ANF, stats
+Imports: ExperimentHub
 Depends: R (>= 3.4.0)
 VignetteBuilder: knitr
 Suggests: AnnotationHub,
     knitr,
     rmarkdown,
+    igraph, 
+    survival, 
+    ANF, 
+    stats,
     testthat
 biocViews: CancerData, ReproducibleResearch
 RoxygenNote: 6.0.1
